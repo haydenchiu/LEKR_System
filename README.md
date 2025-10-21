@@ -1,151 +1,136 @@
-# LEKR_System
-Logic Extraction & Knowledge Reasoning System
-Table of Contents
+# Logic Extraction & Knowledge Reasoning System
 
-Project Overview
+## Table of Contents
 
-Architecture
+- [Project Overview](#project-overview)
+- [Architecture](#architecture)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Data Handling](#data-handling)
+- [MLOps & Monitoring](#mlops--monitoring)
+- [Feedback & Iteration](#feedback--iteration)
+- [License](#license)
 
-Features
-
-Installation
-
-Usage
-
-Data Handling
-
-MLOps & Monitoring
-
-Feedback & Iteration
-
-License
-
-Project Overview
+## Project Overview
 
 This project aims to extract logical structures, causal relations, and key knowledge from documents, and consolidate them into document-level and subject-level knowledge databases. Users can query the system with a question and receive answers with reasoning paths and supporting evidence.
 
-Goals:
+### Goals
 
-Transform unstructured documents (PDF, HTML, Word, etc.) into enriched and logic-augmented chunks.
+- Transform unstructured documents (PDF, HTML, Word, etc.) into enriched and logic-augmented chunks
+- Build intra-document and inter-subject knowledge bases for reasoning and retrieval
+- Enable agentic Q&A with logical explanations
+- Support multi-user workflows with potential per-user namespaces
 
-Build intra-document and inter-subject knowledge bases for reasoning and retrieval.
+### Pain Points Addressed
 
-Enable agentic Q&A with logical explanations.
+- Difficulty in understanding complex logical flows in research papers or domain-specific documents
+- Fragmented knowledge across documents and topics
+- Limited ability to query documents with reasoning and causality
 
-Support multi-user workflows with potential per-user namespaces.
-
-Pain Points Addressed:
-
-Difficulty in understanding complex logical flows in research papers or domain-specific documents.
-
-Fragmented knowledge across documents and topics.
-
-Limited ability to query documents with reasoning and causality.
-
-Architecture
+## Architecture
 
 The system is organized into five layers:
 
-User Layer:
+### User Layer
 
-Upload documents and query the system.
+- Upload documents and query the system
+- Dashboard for monitoring ingestion, clustering, and retrieval
 
-Dashboard for monitoring ingestion, clustering, and retrieval.
+### Document Ingestion & Processing
 
-Document Ingestion & Processing:
+- MIME detection & parsing (supports HTML URLs, PDFs, DOCX)
+- Chunking, enrichment (summary, keywords, table summaries, hypothetical questions)
+- Logic extraction (claims, logical relations, assumptions, constraints, open questions)
+- Vectorization and metadata storage
 
-MIME detection & parsing (supports HTML URLs, PDFs, DOCX).
+### Knowledge Consolidation
 
-Chunking, enrichment (summary, keywords, table summaries, hypothetical questions).
+- Document-level knowledge extraction from enriched logic chunks
+- Subject-level aggregation across multiple documents
+- Clustering agent to detect topic drift and maintain cluster coherence
 
-Logic extraction (claims, logical relations, assumptions, constraints, open questions).
+### Agentic Q&A
 
-Vectorization and metadata storage.
+- Retrieves relevant chunks and knowledge from vector DB and knowledge DB
+- Performs reasoning with logical structures
+- Returns answers with explanations and supporting evidence
 
-Knowledge Consolidation:
+### MLOps & Monitoring
 
-Document-level knowledge extraction from enriched logic chunks.
+- Pipeline monitoring, performance metrics, and alerts
+- CI/CD with versioned LLM prompts and schemas
+- Feedback loops for retraining, knowledge updates, and topic drift adjustments
 
-Subject-level aggregation across multiple documents.
+For a visual overview, see the Mermaid diagram in the `docs/architecture.md` file.
 
-Clustering agent to detect topic drift and maintain cluster coherence.
+## Features
 
-Agentic Q&A:
+- Multi-format document ingestion with MIME detection and error handling
+- Chunk enrichment and logic extraction via LLM
+- Document-level and subject-level knowledge consolidation
+- Vector database for retrieval and agentic reasoning
+- Clustering agent for topic detection and drift monitoring
+- Q&A agent supporting intra-document and inter-subject knowledge retrieval
+- MLOps monitoring, logging, and CI/CD pipeline integration
 
-Retrieves relevant chunks and knowledge from vector DB and knowledge DB.
+## Installation
 
-Performs reasoning with logical structures.
+1. Clone the repository:
 
-Returns answers with explanations and supporting evidence.
-
-MLOps & Monitoring:
-
-Pipeline monitoring, performance metrics, and alerts.
-
-CI/CD with versioned LLM prompts and schemas.
-
-Feedback loops for retraining, knowledge updates, and topic drift adjustments.
-
-For a visual overview, see the Mermaid diagram in the docs/architecture.md file.
-
-Features
-
-Multi-format document ingestion with MIME detection and error handling.
-
-Chunk enrichment and logic extraction via LLM.
-
-Document-level and subject-level knowledge consolidation.
-
-Vector database for retrieval and agentic reasoning.
-
-Clustering agent for topic detection and drift monitoring.
-
-Q&A agent supporting intra-document and inter-subject knowledge retrieval.
-
-MLOps monitoring, logging, and CI/CD pipeline integration.
-
-Installation
-
-Clone the repository:
-
+```bash
 git clone https://github.com/yourusername/logic-extraction-system.git
 cd logic-extraction-system
+```
 
+2. Create a virtual environment:
 
-Create a virtual environment:
-
+```bash
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
+# or
 venv\Scripts\activate     # Windows
+```
 
+3. Install dependencies:
 
-Install dependencies:
-
+```bash
 pip install -r requirements.txt
+```
 
+4. Set up environment variables:
 
-Set up environment variables:
-
+```bash
 cp .env.example .env
 # Edit .env with your API keys and database credentials
+```
 
+5. Start Jupyter/VSCode or Cursor for development.
 
-Start Jupyter/VSCode or Cursor for development.
+## Usage
 
-Usage
-Processing Files
+### Processing Files
+
+```python
 from tools import process_file_tool
 
 status = process_file_tool("data/research_paper.pdf")
 print(status)
+```
 
-Querying with Q&A Agent
+### Querying with Q&A Agent
+
+```python
 from tools import retriever_tool
 
 response = retriever_tool("Explain the causal relationship between X and Y in the uploaded documents.")
 print(response)
+```
 
-Adding Knowledge Consolidation
+### Adding Knowledge Consolidation
+
+```python
 from knowledge_consolidation import consolidate_document_knowledge, consolidate_subject_knowledge
 
 # Document-level
@@ -153,46 +138,38 @@ consolidate_document_knowledge(document_id="doc_123")
 
 # Subject-level
 consolidate_subject_knowledge(subject_id="subject_abc")
+```
 
-Data Handling
+## Data Handling
 
-Input: PDF, HTML, DOCX (other types via MIME detection).
+- **Input**: PDF, HTML, DOCX (other types via MIME detection)
+- **Chunks**: Text or table-based, enriched with summary, keywords, and questions
+- **Logic Extraction**: Claims, relations, assumptions, constraints, open questions
 
-Chunks: Text or table-based, enriched with summary, keywords, and questions.
+### Storage
 
-Logic Extraction: Claims, relations, assumptions, constraints, open questions.
+- **Vector DB**: embeddings for retrieval
+- **Knowledge DB**: structured metadata and consolidated knowledge
 
-Storage:
+## MLOps & Monitoring
 
-Vector DB: embeddings for retrieval.
+- **Pipeline Monitoring**: ingestion, chunking, enrichment, logic extraction, clustering
+- **Metrics**: chunk creation, LLM usage, retrieval quality, cluster drift
+- **CI/CD**: Dockerized pipelines, automated deployment, LLM prompt versioning
+- **Feedback Loops**: user corrections, monitoring metrics → retraining and knowledge updates
 
-Knowledge DB: structured metadata and consolidated knowledge.
-
-MLOps & Monitoring
-
-Pipeline Monitoring: ingestion, chunking, enrichment, logic extraction, clustering.
-
-Metrics: chunk creation, LLM usage, retrieval quality, cluster drift.
-
-CI/CD: Dockerized pipelines, automated deployment, LLM prompt versioning.
-
-Feedback Loops: user corrections, monitoring metrics → retraining and knowledge updates.
-
-Feedback & Iteration
+## Feedback & Iteration
 
 Users can provide feedback on Q&A responses.
 
 Metrics and logs are collected to detect:
 
-Topic drift
-
-Cluster reassignment needs
-
-LLM output quality
+- Topic drift
+- Cluster reassignment needs
+- LLM output quality
 
 Feedback triggers pipeline retraining and knowledge DB updates.
 
-License
+## License
 
-This project is licensed under the MIT License. See LICENSE
- for details.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.

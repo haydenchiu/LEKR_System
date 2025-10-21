@@ -1,42 +1,42 @@
 flowchart TD
     %% User Layer
-    subgraph User
-        U1[User Uploads Documents]
-        U2[User Queries / Q&A]
-        U3[Dashboard for Monitoring]
+    subgraph User["User Layer"]
+        U1["User Uploads Documents"]
+        U2["User Queries / Q&A"]
+        U3["Dashboard for Monitoring"]
     end
 
     %% Document Ingestion Layer
-    subgraph Ingestion & Processing
-        A1[MIME Detection & Parsing]
-        A2[Chunking]
-        A3[Chunk Enrichment (Summary, Keywords, Questions, Table)]
-        A4[Logic Extraction (Claims, Relations, Assumptions, Constraints)]
-        A5[Vectorization → Vector DB]
-        A6[Metadata Storage → Knowledge DB]
+    subgraph Ingestion["Ingestion & Processing"]
+        A1["MIME Detection & Parsing"]
+        A2["Chunking"]
+        A3["Chunk Enrichment<br/>(Summary, Keywords, Questions, Table)"]
+        A4["Logic Extraction<br/>(Claims, Relations, Assumptions, Constraints)"]
+        A5["Vectorization -> Vector DB"]
+        A6["Metadata Storage -> Knowledge DB"]
     end
 
     %% Knowledge Consolidation Layer
-    subgraph Knowledge_Consolidation
-        B1[Document-Level Knowledge Extraction]
-        B2[Subject-Level Knowledge Aggregation]
-        B3[Clustering Agent (Topic Drift Monitoring)]
+    subgraph Knowledge["Knowledge Consolidation"]
+        B1["Document-Level Knowledge Extraction"]
+        B2["Subject-Level Knowledge Aggregation"]
+        B3["Clustering Agent<br/>(Topic Drift Monitoring)"]
     end
 
     %% Agentic Q&A Layer
-    subgraph QA_Agent
-        C1[Retrieve from Vector DB (Intra-Doc)]
-        C2[Retrieve from Knowledge DB (Inter-Subject)]
-        C3[Reasoning with Logic Extraction]
-        C4[Answer + Reasoning + Evidence]
+    subgraph QA["QA Agent"]
+        C1["Retrieve from Vector DB<br/>(Intra-Doc)"]
+        C2["Retrieve from Knowledge DB<br/>(Inter-Subject)"]
+        C3["Reasoning with Logic Extraction"]
+        C4["Answer + Reasoning + Evidence"]
     end
 
     %% MLOps & Monitoring Layer
-    subgraph MLOps_Monitoring
-        D1[Pipeline Monitoring]
-        D2[Metrics: ingestion, logic extraction, clustering, retrieval]
-        D3[CI/CD: Deployment, LLM Versioning, Batch & Online Inference]
-        D4[Feedback Loop → Retraining / Knowledge Update]
+    subgraph MLOps["MLOps & Monitoring"]
+        D1["Pipeline Monitoring"]
+        D2["Metrics: ingestion, logic extraction,<br/>clustering, retrieval"]
+        D3["CI/CD: Deployment, LLM Versioning,<br/>Batch & Online Inference"]
+        D4["Feedback Loop -> Retraining /<br/>Knowledge Update"]
     end
 
     %% Connections
