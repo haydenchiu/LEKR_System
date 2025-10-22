@@ -12,18 +12,10 @@ from pathlib import Path
 from typing import List, Any
 
 # Import enrichment module components
-from enrichment import (
-    DocumentEnricher,
-    ChunkEnrichment,
-    EnrichmentConfig,
-    DEFAULT_ENRICHMENT_CONFIG,
-    FAST_ENRICHMENT_CONFIG,
-    HIGH_QUALITY_ENRICHMENT_CONFIG,
-    add_enrichment_to_chunk,
-    add_enrichment_to_chunk_async,
-    process_chunks_concurrently,
-    enrich_and_extract_logic
-)
+from enrichment.enricher import DocumentEnricher, add_enrichment_to_chunk, add_enrichment_to_chunk_async
+from enrichment.models import ChunkEnrichment
+from enrichment.config import EnrichmentConfig, DEFAULT_ENRICHMENT_CONFIG, FAST_ENRICHMENT_CONFIG, HIGH_QUALITY_ENRICHMENT_CONFIG
+from enrichment.utils import process_chunks_concurrently, enrich_and_extract_logic
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

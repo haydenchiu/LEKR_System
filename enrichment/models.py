@@ -6,7 +6,7 @@ summaries, keywords, questions, and table data.
 """
 
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class ChunkEnrichment(BaseModel):
@@ -29,11 +29,11 @@ class ChunkEnrichment(BaseModel):
         default=None
     )
     
-    class Config:
-        """Pydantic configuration."""
-        json_encoders = {
+    model_config = ConfigDict(
+        json_encoders={
             # Add any custom encoders if needed
         }
+    )
         
     def model_dump(self, **kwargs):
         """Return model as dictionary."""

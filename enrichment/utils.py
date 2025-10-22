@@ -57,10 +57,13 @@ def get_chunk_content(chunk: Any, is_table: bool = None) -> str:
                 return metadata.get('text_as_html', '')
         else:
             # For text chunks, get text content
-            if hasattr(chunk, 'text'):
+            if hasattr(chunk, 'text') and chunk.text is not None:
                 return chunk.text
-            elif hasattr(chunk, 'content'):
+            elif hasattr(chunk, 'content') and chunk.content is not None:
                 return chunk.content
+            else:
+                # Fallback for text chunks
+                return str(chunk)
         
         # Fallback
         return str(chunk)

@@ -6,7 +6,7 @@ LLM settings, batch processing, and enrichment parameters.
 """
 
 from typing import Optional, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class EnrichmentConfig(BaseModel):
@@ -91,11 +91,11 @@ class EnrichmentConfig(BaseModel):
         description="Additional parameters to pass to the LLM"
     )
     
-    class Config:
-        """Pydantic configuration."""
-        json_encoders = {
+    model_config = ConfigDict(
+        json_encoders={
             # Add any custom encoders if needed
         }
+    )
     
     @classmethod
     def default(cls) -> "EnrichmentConfig":

@@ -168,6 +168,7 @@ class DocumentEnricher:
         if not self.config.enable_async_processing:
             return self.enrich_chunks(chunks)
         
+        from .utils import process_chunks_concurrently
         return await process_chunks_concurrently(
             chunks, 
             self.enrich_chunk_async, 
