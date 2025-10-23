@@ -18,6 +18,11 @@ sentence-transformers>=2.2.2
 fastembed>=0.1.8
 qdrant-client>=1.4.1
 
+# Clustering Dependencies
+bertopic>=0.16.0
+umap-learn>=0.5.6
+hdbscan>=0.8.33
+
 # Data Processing
 pandas>=2.1.1
 numpy>=2.2.6
