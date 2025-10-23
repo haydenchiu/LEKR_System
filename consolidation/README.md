@@ -21,10 +21,22 @@ This module implements three main functions as requested:
 
 ## Architecture
 
+### Basic Flow
 ```
 Document Chunks → Document Consolidation → Document Knowledge
                                         ↓
 Subject Knowledge ← Subject Consolidation ← Multiple Documents
+                                        ↓
+Knowledge Storage → Database → Agentic Q&A Retrieval
+```
+
+### Integrated Flow with Clustering
+```
+Document Chunks → Document Consolidation → Document Knowledge
+                                        ↓
+Document Clustering → Document Clusters (Subjects)
+                                        ↓
+Subject Knowledge ← Cluster-Based Consolidation ← Document Clusters
                                         ↓
 Knowledge Storage → Database → Agentic Q&A Retrieval
 ```
@@ -36,6 +48,8 @@ Knowledge Storage → Database → Agentic Q&A Retrieval
 - **`DocumentConsolidator`**: Consolidates knowledge from document chunks
 - **`SubjectConsolidator`**: Aggregates document knowledge into subject knowledge
 - **`KnowledgeStorageManager`**: Manages storage and retrieval of knowledge
+- **`ClusterBasedSubjectConsolidator`**: Consolidates subjects from document clusters
+- **`IntegratedConsolidationPipeline`**: Complete pipeline with clustering integration
 
 ### Models
 
@@ -80,6 +94,7 @@ print(f"Quality score: {document_knowledge.quality_score}")
 
 ### Subject-Level Consolidation
 
+#### Basic Subject Consolidation
 ```python
 from consolidation import SubjectConsolidator
 
@@ -96,6 +111,41 @@ subject_knowledge = subject_consolidator.consolidate_subject(
 
 print(f"Subject expertise level: {subject_knowledge.expertise_level}")
 print(f"Core concepts: {len(subject_knowledge.core_concepts)}")
+```
+
+#### Cluster-Based Subject Consolidation
+```python
+from consolidation import ClusterBasedSubjectConsolidator
+from clustering import DocumentClusterer
+
+# Step 1: Cluster documents
+clusterer = DocumentClusterer()
+clustering_result = clusterer.fit_clusters(documents, document_ids)
+
+# Step 2: Consolidate subjects from clusters
+cluster_consolidator = ClusterBasedSubjectConsolidator()
+subject_knowledge_list = cluster_consolidator.consolidate_subjects_from_clusters(
+    clustering_result, document_knowledge_map
+)
+
+print(f"Created {len(subject_knowledge_list)} subjects from clusters")
+```
+
+#### Integrated Pipeline
+```python
+from consolidation import IntegratedConsolidationPipeline
+
+# Complete pipeline from documents to subjects
+pipeline = IntegratedConsolidationPipeline()
+
+doc_knowledge_list, subject_knowledge_list = pipeline.process_documents_to_subjects(
+    documents=document_texts,
+    document_ids=document_ids,
+    document_chunks_map=chunks_map,
+    chunk_logic_data_map=logic_data_map
+)
+
+print(f"Processed {len(doc_knowledge_list)} documents into {len(subject_knowledge_list)} subjects")
 ```
 
 ### Knowledge Storage and Retrieval

@@ -53,6 +53,10 @@ from .models import (
 from .document_consolidator import DocumentConsolidator
 from .subject_consolidator import SubjectConsolidator
 from .knowledge_storage import KnowledgeStorage
+from .cluster_integration import (
+    ClusterBasedSubjectConsolidator,
+    IntegratedConsolidationPipeline
+)
 from .utils import (
     extract_key_concepts,
     build_knowledge_graph,
@@ -82,6 +86,10 @@ __all__ = [
     "DocumentConsolidator",
     "SubjectConsolidator",
     "KnowledgeStorage",
+    
+    # Cluster integration
+    "ClusterBasedSubjectConsolidator",
+    "IntegratedConsolidationPipeline",
     
     # Utilities
     "extract_key_concepts",

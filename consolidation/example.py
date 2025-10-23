@@ -14,6 +14,10 @@ from datetime import datetime
 from consolidation.document_consolidator import DocumentConsolidator
 from consolidation.subject_consolidator import SubjectConsolidator
 from consolidation.knowledge_storage import KnowledgeStorageManager
+from consolidation.cluster_integration import (
+    ClusterBasedSubjectConsolidator,
+    IntegratedConsolidationPipeline
+)
 from consolidation.models import DocumentKnowledge, SubjectKnowledge, KeyConcept, KnowledgeRelation
 from consolidation.config import (
     ConsolidationConfig,
@@ -267,6 +271,55 @@ def demonstrate_knowledge_storage():
         return False
 
 
+def demonstrate_cluster_based_consolidation():
+    """Demonstrate cluster-based subject consolidation."""
+    logger.info("=== Cluster-Based Consolidation Demo ===")
+    
+    try:
+        # Create sample documents
+        documents = [
+            "Machine learning is a subset of artificial intelligence that focuses on algorithms that can learn from data.",
+            "Deep learning uses neural networks with multiple layers to process complex data patterns.",
+            "Natural language processing combines computational linguistics with machine learning to understand human language.",
+            "Computer vision enables machines to interpret and analyze visual information from images and videos.",
+            "Data science combines statistics, programming, and domain expertise to extract insights from large datasets."
+        ]
+        
+        document_ids = ["doc_1", "doc_2", "doc_3", "doc_4", "doc_5"]
+        
+        # Create sample document chunks (simplified)
+        document_chunks_map = {
+            doc_id: [{"content": doc, "metadata": {"page": 1}}] 
+            for doc_id, doc in zip(document_ids, documents)
+        }
+        
+        # Initialize integrated pipeline
+        pipeline = IntegratedConsolidationPipeline(DEFAULT_CONSOLIDATION_CONFIG)
+        
+        # Process documents to subjects
+        doc_knowledge_list, subject_knowledge_list = pipeline.process_documents_to_subjects(
+            documents=documents,
+            document_ids=document_ids,
+            document_chunks_map=document_chunks_map
+        )
+        
+        # Display results
+        logger.info(f"Processed {len(doc_knowledge_list)} documents")
+        logger.info(f"Created {len(subject_knowledge_list)} subjects")
+        
+        for i, subject in enumerate(subject_knowledge_list):
+            logger.info(f"Subject {i+1}: {subject.name}")
+            logger.info(f"  Description: {subject.description}")
+            logger.info(f"  Core concepts: {len(subject.core_concepts)}")
+            logger.info(f"  Quality score: {subject.quality_score:.3f}")
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"Cluster-based consolidation failed: {e}")
+        return False
+
+
 def demonstrate_consolidation_pipeline():
     """Demonstrate the complete consolidation pipeline."""
     logger.info("=== Complete Consolidation Pipeline Demo ===")
@@ -371,6 +424,10 @@ def main():
         logger.info("")
         
         demonstrate_knowledge_storage()
+        logger.info("")
+        
+        # Demonstrate cluster-based consolidation
+        demonstrate_cluster_based_consolidation()
         logger.info("")
         
         # Demonstrate complete pipeline
