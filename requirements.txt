@@ -18,6 +18,10 @@ sentence-transformers>=2.2.2
 fastembed>=0.1.8
 qdrant-client>=1.4.1
 
+# Retriever Dependencies
+langchain-community>=0.2.0
+rank-bm25>=0.2.2
+
 # Clustering Dependencies
 bertopic>=0.16.0
 umap-learn>=0.5.6
