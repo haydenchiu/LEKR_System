@@ -290,34 +290,51 @@ class WorkerService:
         try:
             input_path = task['data']['input_path']
             collection_name = task['data'].get('collection_name', 'lerk_documents')
+            embedding_strategy = task['data'].get('embedding_strategy', {
+                'include_base_content': True,
+                'include_enrichments': True,
+                'include_logic_extractions': True,
+                'combination_strategy': 'structured',
+                'max_text_length': 512
+            })
             
-            # Get processed documents
-            processed_files = list(Path(input_path).glob("*_processed.json"))
-            
-            if not processed_files:
+            # Import QdrantIndexer
+            try:
+                from retriever import QdrantIndexer, EmbeddingStrategy, RetrieverConfig
+            except ImportError:
+                logger.error("Failed to import QdrantIndexer - retriever module not available")
                 return {
                     'success': False,
-                    'error': 'No processed documents found'
+                    'error': 'QdrantIndexer not available'
                 }
             
-            # Index documents for retrieval
-            indexed_count = 0
-            for file_path in processed_files:
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    processed_data = json.load(f)
-                
-                # Extract chunks for indexing
-                chunks = processed_data.get('chunks', [])
-                
-                # Index chunks (this would typically involve vector database operations)
-                # For now, we'll just count the chunks
-                indexed_count += len(chunks)
+            # Create indexer with custom configuration
+            config = RetrieverConfig(
+                collection_name=collection_name,
+                host=os.getenv('QDRANT_HOST', 'localhost'),
+                port=int(os.getenv('QDRANT_PORT', '6333')),
+                embedding_model=os.getenv('EMBEDDING_MODEL', 'all-MiniLM-L6-v2'),
+                embedding_dimension=int(os.getenv('EMBEDDING_DIMENSION', '384'))
+            )
+            
+            strategy = EmbeddingStrategy(embedding_strategy)
+            indexer = QdrantIndexer(config, strategy)
+            
+            # Index all processed documents
+            result = indexer.index_processed_documents_batch(input_path)
+            
+            if result['success']:
+                logger.info(f"Successfully indexed {result['total_indexed']} chunks from {result['files_processed']} documents")
+            else:
+                logger.warning(f"Indexing completed with errors: {result.get('errors', [])}")
             
             return {
-                'success': True,
-                'indexed_documents': len(processed_files),
-                'indexed_chunks': indexed_count,
-                'collection_name': collection_name
+                'success': result['success'],
+                'indexed_documents': result['files_processed'],
+                'indexed_chunks': result['total_indexed'],
+                'total_files': result['total_files'],
+                'collection_name': collection_name,
+                'errors': result.get('errors', [])
             }
             
         except Exception as e:

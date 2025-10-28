@@ -1,17 +1,20 @@
 # LERK Retriever Module
 
-The LERK Retriever Module provides comprehensive retrieval functionality for the LERK System, supporting semantic search, hybrid search, and context-aware retrieval using LangChain integration with Qdrant vector database.
+The LERK Retriever Module provides comprehensive retrieval functionality for the LERK System, supporting semantic search, hybrid search, context-aware retrieval, and Qdrant indexing using LangChain integration with Qdrant vector database.
 
 ## Features
 
 - **Semantic Retrieval**: Vector similarity search using embeddings
 - **Hybrid Search**: Combines semantic and keyword-based search (BM25)
 - **Context-Aware Retrieval**: Considers conversation history and user preferences
+- **Qdrant Indexing**: Index processed documents with enrichments and logic extractions
+- **Embedding Strategies**: Configurable strategies for creating embeddings from chunk data
 - **Metadata Filtering**: Filter results by document properties
-- **Batch Processing**: Efficient batch retrieval for multiple queries
+- **Batch Processing**: Efficient batch retrieval and indexing for multiple queries
 - **Result Ranking**: Multiple ranking strategies (relevance, quality, combined)
 - **Diversity Filtering**: Avoid similar results for better coverage
 - **Caching**: Optional result caching for improved performance
+- **Index Management**: Create, update, delete, and reindex vector collections
 
 ## Installation
 
@@ -22,6 +25,47 @@ pip install langchain qdrant-client sentence-transformers scikit-learn
 ```
 
 ## Quick Start
+
+### Qdrant Indexing
+
+```python
+from retriever import QdrantIndexer, EmbeddingStrategy, RetrieverConfig
+
+# Create embedding strategy
+strategy = EmbeddingStrategy({
+    'include_base_content': True,
+    'include_enrichments': True,
+    'include_logic_extractions': True,
+    'combination_strategy': 'structured',
+    'max_text_length': 512
+})
+
+# Create indexer
+config = RetrieverConfig(
+    collection_name='lerk_knowledge',
+    host='localhost',
+    port=6333,
+    embedding_model='all-MiniLM-L6-v2'
+)
+indexer = QdrantIndexer(config, strategy)
+
+# Index processed documents
+result = indexer.index_processed_documents_batch('data/processed')
+print(f"Indexed {result['total_indexed']} chunks from {result['files_processed']} documents")
+
+# Index individual chunk
+chunk_data = {
+    'id': 'chunk_1',
+    'content': 'Machine learning is a subset of AI.',
+    'enrichment': {'summary': 'ML definition', 'keywords': ['ML', 'AI']},
+    'logic_extraction': {'claims': [{'text': 'ML is subset of AI'}]}
+}
+point_id = indexer.index_chunk(chunk_data)
+
+# Get collection statistics
+stats = indexer.get_collection_stats()
+print(f"Collection has {stats['points_count']} points")
+```
 
 ### Basic Semantic Retrieval
 
@@ -190,6 +234,143 @@ results = retriever.retrieve_with_feedback(
         "disliked_documents": ["doc_2"]
     }
 )
+```
+
+## Qdrant Indexing
+
+The retriever module includes comprehensive Qdrant indexing functionality for indexing processed documents with enrichments and logic extractions into vector databases.
+
+### Embedding Strategies
+
+Configure how chunk content is converted to embeddings:
+
+```python
+from retriever import EmbeddingStrategy
+
+# Content-only strategy
+content_only = EmbeddingStrategy({
+    'include_base_content': True,
+    'include_enrichments': False,
+    'include_logic_extractions': False,
+    'combination_strategy': 'concatenate'
+})
+
+# Enriched content strategy
+enriched_strategy = EmbeddingStrategy({
+    'include_base_content': True,
+    'include_enrichments': True,
+    'include_logic_extractions': True,
+    'combination_strategy': 'structured',
+    'max_text_length': 512
+})
+
+# Custom weighted strategy
+weighted_strategy = EmbeddingStrategy({
+    'include_base_content': True,
+    'include_enrichments': True,
+    'include_logic_extractions': True,
+    'content_weight': 1.0,
+    'enrichment_weight': 0.8,
+    'logic_weight': 0.6,
+    'combination_strategy': 'weighted'
+})
+```
+
+### Index Management
+
+```python
+from retriever import QdrantIndexer, RetrieverConfig
+
+# Create indexer
+config = RetrieverConfig(
+    collection_name='lerk_knowledge',
+    host='localhost',
+    port=6333,
+    embedding_model='all-MiniLM-L6-v2',
+    embedding_dimension=384
+)
+indexer = QdrantIndexer(config, enriched_strategy)
+
+# Index processed documents
+result = indexer.index_processed_documents_batch('data/processed')
+print(f"Success: {result['success']}")
+print(f"Indexed: {result['total_indexed']} chunks")
+print(f"Files: {result['files_processed']}/{result['total_files']}")
+
+# Index individual chunk
+chunk_data = {
+    'id': 'chunk_123',
+    'document_id': 'doc_456',
+    'content': 'Machine learning algorithms...',
+    'enrichment': {
+        'summary': 'Overview of ML algorithms',
+        'keywords': ['machine learning', 'algorithms', 'AI']
+    },
+    'logic_extraction': {
+        'claims': [{'text': 'ML algorithms are powerful', 'confidence': 0.9}]
+    }
+}
+point_id = indexer.index_chunk(chunk_data)
+
+# Batch indexing
+chunks_data = [chunk_data, ...]  # Multiple chunks
+point_ids = indexer.index_chunks_batch(chunks_data)
+
+# Delete chunks
+indexer.delete_chunk('chunk_123')
+indexer.delete_document_chunks('doc_456')
+
+# Collection statistics
+stats = indexer.get_collection_stats()
+print(f"Points: {stats['points_count']}")
+print(f"Vector size: {stats['vector_size']}")
+print(f"Distance: {stats['distance']}")
+
+# Reindex entire collection
+result = indexer.reindex_collection('data/processed')
+```
+
+### Embedding Text Examples
+
+Different strategies create different embedding texts:
+
+**Content Only:**
+```
+"Machine learning is a subset of artificial intelligence."
+```
+
+**Structured Enriched:**
+```
+"Content: Machine learning is a subset of artificial intelligence.
+Summary: Introduction to machine learning concepts.
+Keywords: machine learning, artificial intelligence, AI, subset
+Claims: Machine learning is a subset of AI, ML enables computers to learn"
+```
+
+**Concatenated Enriched:**
+```
+"Machine learning is a subset of artificial intelligence. Introduction to machine learning concepts. machine learning, artificial intelligence, AI, subset Machine learning is a subset of AI, ML enables computers to learn"
+```
+
+### Integration with Worker Service
+
+The indexing functionality is integrated into the worker service for automated processing:
+
+```python
+# Worker service automatically indexes processed documents
+task = {
+    'type': 'retrieval_indexing',
+    'data': {
+        'input_path': 'data/processed',
+        'collection_name': 'lerk_knowledge',
+        'embedding_strategy': {
+            'include_base_content': True,
+            'include_enrichments': True,
+            'include_logic_extractions': True,
+            'combination_strategy': 'structured'
+        }
+    }
+}
 ```
 
 ## Advanced Features
