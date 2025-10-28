@@ -13,6 +13,13 @@ import asyncio
 
 logger = logging.getLogger(__name__)
 
+# Import AgentChat integration
+from .agentchat_integration import (
+    AgentChatLERKIntegration,
+    create_agentchat_integration,
+    process_chat_message_with_lerk
+)
+
 
 class LERKIntegrationManager:
     """
@@ -344,40 +351,6 @@ class ConsolidationIntegrationInterface:
             return {"success": False, "error": str(e)}
 
 
-class RetrieverIntegrationInterface:
-    """Interface for retriever module integration."""
-    
-    @staticmethod
-    def search_subject_knowledge(
-        query: str,
-        filters: Optional[Dict[str, Any]] = None
-    ) -> List[Dict[str, Any]]:
-        """
-        Search subject knowledge through retriever.
-        
-        Args:
-            query: Search query
-            filters: Optional filters
-            
-        Returns:
-            Search results
-        """
-        try:
-            from retriever import search_subject_knowledge
-            
-            return search_subject_knowledge(query, filters)
-            
-        except ImportError:
-            logger.error("Retriever module not available")
-            return []
-        except Exception as e:
-            logger.error(f"Subject knowledge search failed: {e}")
-            return []
-
-
-__version__ = "1.0.0"
-__author__ = "LERK System Team"
-
 # Public API
 __all__ = [
     # Main integration manager
@@ -389,4 +362,9 @@ __all__ = [
     "ClusteringIntegrationInterface",
     "ConsolidationIntegrationInterface", 
     "RetrieverIntegrationInterface",
+    
+    # AgentChat integration
+    "AgentChatLERKIntegration",
+    "create_agentchat_integration",
+    "process_chat_message_with_lerk",
 ]
