@@ -40,6 +40,11 @@ from .clusterer import (
     assign_documents_to_clusters,
     reassign_documents_to_clusters
 )
+from .dynamic_clustering import (
+    DynamicClusteringManager,
+    create_dynamic_clustering_manager,
+    process_new_documents_async
+)
 from .utils import (
     analyze_cluster_quality,
     get_cluster_statistics,
@@ -67,6 +72,11 @@ __all__ = [
     "DocumentClusterer",
     "assign_documents_to_clusters",
     "reassign_documents_to_clusters",
+
+    # Dynamic clustering
+    "DynamicClusteringManager",
+    "create_dynamic_clustering_manager",
+    "process_new_documents_async",
 
     # Utilities
     "analyze_cluster_quality",

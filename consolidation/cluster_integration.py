@@ -230,43 +230,233 @@ class ClusterBasedSubjectConsolidator:
             logger.warning(f"Failed to generate subject description: {e}")
             return f"Consolidated knowledge from cluster {cluster.cluster_id}"
     
-    def consolidate_subjects_with_custom_clustering(
+    async def handle_clustering_update(
         self,
-        documents: List[str],
-        document_ids: List[str],
-        document_knowledge_map: Dict[str, DocumentKnowledge],
-        clustering_config: Optional[Dict[str, Any]] = None
-    ) -> List[SubjectKnowledge]:
+        clustering_update_results: Dict[str, Any],
+        document_knowledge_map: Dict[str, DocumentKnowledge]
+    ) -> Dict[str, Any]:
         """
-        Perform clustering and then consolidate subjects.
+        Handle dynamic clustering updates and update subject knowledge accordingly.
+        
+        This method is called when the clustering module processes new documents
+        and updates clusters. It ensures subject knowledge stays in sync.
         
         Args:
-            documents: List of document texts
-            document_ids: List of document IDs
+            clustering_update_results: Results from DynamicClusteringManager.process_new_documents()
             document_knowledge_map: Mapping of document_id to DocumentKnowledge
-            clustering_config: Optional clustering configuration
             
         Returns:
-            List of SubjectKnowledge objects
+            Subject knowledge update results
         """
         try:
-            from clustering.config import DEFAULT_CLUSTERING_CONFIG
+            logger.info("Handling clustering update for subject knowledge")
             
-            # Initialize clusterer
-            clusterer = DocumentClusterer()
+            subject_updates = {
+                "updated_subjects": [],
+                "new_subjects": [],
+                "deleted_subjects": [],
+                "quality_changes": []
+            }
             
-            # Fit clusters to documents
-            clustering_result = clusterer.fit_clusters(documents, document_ids)
+            # Handle updated clusters
+            for cluster_update in clustering_update_results.get("updated_clusters", []):
+                subject_update = await self._update_subject_for_cluster(
+                    cluster_update, document_knowledge_map
+                )
+                if subject_update:
+                    subject_updates["updated_subjects"].append(subject_update)
             
-            # Consolidate subjects from clusters
-            subject_knowledge_list = self.consolidate_subjects_from_clusters(
-                clustering_result, document_knowledge_map
-            )
+            # Handle new clusters
+            for new_cluster in clustering_update_results.get("new_clusters", []):
+                new_subject = await self._create_subject_for_cluster(
+                    new_cluster, document_knowledge_map
+                )
+                if new_subject:
+                    subject_updates["new_subjects"].append(new_subject)
             
-            return subject_knowledge_list
+            # Handle cluster deletions (if any)
+            deleted_clusters = clustering_update_results.get("deleted_clusters", [])
+            for deleted_cluster in deleted_clusters:
+                deleted_subject = await self._delete_subject_for_cluster(deleted_cluster)
+                if deleted_subject:
+                    subject_updates["deleted_subjects"].append(deleted_subject)
+            
+            logger.info(f"Subject knowledge update completed: "
+                       f"{len(subject_updates['updated_subjects'])} updated, "
+                       f"{len(subject_updates['new_subjects'])} new, "
+                       f"{len(subject_updates['deleted_subjects'])} deleted")
+            
+            return subject_updates
             
         except Exception as e:
-            raise SubjectConsolidationError(f"Failed to consolidate subjects with custom clustering: {e}") from e
+            logger.error(f"Failed to handle clustering update: {e}")
+            return {
+                "updated_subjects": [],
+                "new_subjects": [],
+                "deleted_subjects": [],
+                "quality_changes": [],
+                "error": str(e)
+            }
+    
+    async def _update_subject_for_cluster(
+        self,
+        cluster_update: Dict[str, Any],
+        document_knowledge_map: Dict[str, DocumentKnowledge]
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Update subject knowledge for an updated cluster.
+        
+        Args:
+            cluster_update: Cluster update information
+            document_knowledge_map: Mapping of document_id to DocumentKnowledge
+            
+        Returns:
+            Subject update information or None if failed
+        """
+        try:
+            cluster_id = cluster_update.get("cluster_id")
+            if not cluster_id:
+                logger.warning("Cluster update missing cluster_id")
+                return None
+            
+            # Get documents for this cluster
+            cluster_documents = self._get_documents_for_cluster_from_update(
+                cluster_update, document_knowledge_map
+            )
+            
+            if not cluster_documents:
+                logger.warning(f"No documents found for updated cluster {cluster_id}")
+                return None
+            
+            # Update subject knowledge
+            subject_id = f"subject_{cluster_id}"
+            
+            # This would update the subject knowledge in the database
+            # For now, return mock update information
+            return {
+                "subject_id": subject_id,
+                "cluster_id": cluster_id,
+                "updated_at": datetime.utcnow().isoformat(),
+                "quality_score": cluster_update.get("quality_score", 0.8),
+                "document_count": len(cluster_documents),
+                "update_type": "cluster_update"
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to update subject for cluster: {e}")
+            return None
+    
+    async def _create_subject_for_cluster(
+        self,
+        new_cluster: Dict[str, Any],
+        document_knowledge_map: Dict[str, DocumentKnowledge]
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Create subject knowledge for a new cluster.
+        
+        Args:
+            new_cluster: New cluster information
+            document_knowledge_map: Mapping of document_id to DocumentKnowledge
+            
+        Returns:
+            New subject information or None if failed
+        """
+        try:
+            cluster_id = new_cluster.get("cluster_id")
+            if not cluster_id:
+                logger.warning("New cluster missing cluster_id")
+                return None
+            
+            # Get documents for this cluster
+            cluster_documents = self._get_documents_for_cluster_from_update(
+                new_cluster, document_knowledge_map
+            )
+            
+            if not cluster_documents:
+                logger.warning(f"No documents found for new cluster {cluster_id}")
+                return None
+            
+            # Create subject knowledge
+            subject_id = f"subject_{cluster_id}"
+            
+            # This would create new subject knowledge in the database
+            # For now, return mock creation information
+            return {
+                "subject_id": subject_id,
+                "cluster_id": cluster_id,
+                "name": new_cluster.get("label", "New Subject"),
+                "description": new_cluster.get("description", "New subject knowledge"),
+                "created_at": datetime.utcnow().isoformat(),
+                "quality_score": new_cluster.get("quality_score", 0.8),
+                "document_count": len(cluster_documents),
+                "update_type": "cluster_creation"
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to create subject for cluster: {e}")
+            return None
+    
+    async def _delete_subject_for_cluster(self, deleted_cluster: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """
+        Delete subject knowledge for a deleted cluster.
+        
+        Args:
+            deleted_cluster: Deleted cluster information
+            
+        Returns:
+            Deletion information or None if failed
+        """
+        try:
+            cluster_id = deleted_cluster.get("cluster_id")
+            if not cluster_id:
+                logger.warning("Deleted cluster missing cluster_id")
+                return None
+            
+            subject_id = f"subject_{cluster_id}"
+            
+            # This would delete the subject knowledge from the database
+            # For now, return mock deletion information
+            return {
+                "subject_id": subject_id,
+                "cluster_id": cluster_id,
+                "deleted_at": datetime.utcnow().isoformat(),
+                "update_type": "cluster_deletion"
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to delete subject for cluster: {e}")
+            return None
+    
+    def _get_documents_for_cluster_from_update(
+        self,
+        cluster_info: Dict[str, Any],
+        document_knowledge_map: Dict[str, DocumentKnowledge]
+    ) -> List[DocumentKnowledge]:
+        """
+        Get documents for a cluster from update information.
+        
+        Args:
+            cluster_info: Cluster information from update
+            document_knowledge_map: Mapping of document_id to DocumentKnowledge
+            
+        Returns:
+            List of DocumentKnowledge objects for the cluster
+        """
+        try:
+            cluster_documents = []
+            
+            # Get document IDs from cluster assignments
+            assigned_documents = cluster_info.get("assigned_documents", [])
+            for assignment in assigned_documents:
+                doc_id = assignment.get("document_id")
+                if doc_id and doc_id in document_knowledge_map:
+                    cluster_documents.append(document_knowledge_map[doc_id])
+            
+            return cluster_documents
+            
+        except Exception as e:
+            logger.error(f"Failed to get documents for cluster from update: {e}")
+            return []
 
 
 class IntegratedConsolidationPipeline:

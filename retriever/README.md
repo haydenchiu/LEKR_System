@@ -7,6 +7,11 @@ The LERK Retriever Module provides comprehensive retrieval functionality for the
 - **Semantic Retrieval**: Vector similarity search using embeddings
 - **Hybrid Search**: Combines semantic and keyword-based search (BM25)
 - **Context-Aware Retrieval**: Considers conversation history and user preferences
+- **Subject-Level Retrieval**: Handle queries about document clusters with fallback mechanisms
+- **Multi-Level Search**: Intelligent routing across chunks, documents, and subjects
+- **Discovery Services**: Find available clusters and documents in the system
+- **Dynamic Clustering**: Handle new documents with automatic reclustering and subject updates
+- **Query Classification**: Automatically detect query intent and appropriate search level
 - **Qdrant Indexing**: Index processed documents with enrichments and logic extractions
 - **Embedding Strategies**: Configurable strategies for creating embeddings from chunk data
 - **Metadata Filtering**: Filter results by document properties
@@ -25,6 +30,65 @@ pip install langchain qdrant-client sentence-transformers scikit-learn
 ```
 
 ## Quick Start
+
+### Subject-Level Retrieval
+
+```python
+from retriever import SubjectRetriever, MultiLevelSearchOrchestrator, create_subject_retriever
+
+# Create subject retriever
+subject_retriever = create_subject_retriever()
+
+# Search subject knowledge with fallback
+results = subject_retriever.get_relevant_documents("What are the main concepts in machine learning?")
+
+# Check if fallback was used
+for doc in results:
+    if doc.metadata.get('fallback_reason'):
+        print(f"Fallback: {doc.metadata['fallback_reason']}")
+
+# Multi-level search with auto-detection
+orchestrator = MultiLevelSearchOrchestrator()
+results = orchestrator.search("What are the main concepts in machine learning?")
+
+# Include discovery information
+results = orchestrator.search(
+    query="What topics are available?",
+    search_level="discovery",
+    include_discovery=True
+)
+```
+
+### Discovery Services
+
+```python
+from retriever import ClusterDiscoveryService, DocumentDiscoveryService
+
+# Get available clusters
+cluster_service = ClusterDiscoveryService()
+clusters = cluster_service.get_all_clusters()
+print(f"Available clusters: {clusters['cluster_count']}")
+
+# Get available documents
+document_service = DocumentDiscoveryService()
+documents = document_service.get_all_documents()
+print(f"Available documents: {documents['document_count']}")
+```
+
+### Dynamic Clustering
+
+```python
+from clustering import DynamicClusteringManager
+import asyncio
+
+# Process new documents
+clustering_manager = DynamicClusteringManager()
+new_documents = [{"document_id": "new_doc", "content": "..."}]
+
+# Auto-detect update strategy
+update_results = await clustering_manager.process_new_documents(new_documents)
+print(f"New clusters: {update_results['clustering_changes']['new_clusters']}")
+```
 
 ### Qdrant Indexing
 

@@ -47,6 +47,18 @@ from .base_retriever import BaseRetriever
 from .semantic_retriever import SemanticRetriever
 from .hybrid_retriever import HybridRetriever
 from .context_retriever import ContextRetriever
+from .subject_retriever import SubjectRetriever, create_subject_retriever, search_subject_knowledge
+from .discovery_service import (
+    ClusterDiscoveryService, 
+    DocumentDiscoveryService,
+    create_cluster_discovery_service,
+    create_document_discovery_service
+)
+from .multi_level_orchestrator import (
+    MultiLevelSearchOrchestrator,
+    create_multi_level_orchestrator,
+    search_multi_level
+)
 from .indexing import QdrantIndexer, EmbeddingStrategy, create_indexer, index_processed_documents
 from .utils import (
     format_retrieval_results,
@@ -65,23 +77,39 @@ __all__ = [
     # Configuration
     "RetrieverConfig",
     "DEFAULT_RETRIEVER_CONFIG",
-    "FAST_RETRIEVER_CONFIG", 
+    "FAST_RETRIEVER_CONFIG",
     "HIGH_QUALITY_RETRIEVER_CONFIG",
     "SEMANTIC_RETRIEVER_CONFIG",
     "HYBRID_RETRIEVER_CONFIG",
-    
+
     # Core retrievers
     "BaseRetriever",
     "SemanticRetriever",
-    "HybridRetriever", 
+    "HybridRetriever",
     "ContextRetriever",
-    
+    "SubjectRetriever",
+
+    # Discovery services
+    "ClusterDiscoveryService",
+    "DocumentDiscoveryService",
+    "create_cluster_discovery_service",
+    "create_document_discovery_service",
+
+    # Multi-level search
+    "MultiLevelSearchOrchestrator",
+    "create_multi_level_orchestrator",
+    "search_multi_level",
+
+    # Subject retrieval
+    "create_subject_retriever",
+    "search_subject_knowledge",
+
     # Indexing
     "QdrantIndexer",
-    "EmbeddingStrategy", 
+    "EmbeddingStrategy",
     "create_indexer",
     "index_processed_documents",
-    
+
     # Utilities
     "format_retrieval_results",
     "calculate_relevance_score",
@@ -89,7 +117,7 @@ __all__ = [
     "rank_by_quality",
     "batch_retrieve",
     "merge_retrieval_results",
-    
+
     # Exceptions
     "RetrievalError",
     "VectorSearchError",
