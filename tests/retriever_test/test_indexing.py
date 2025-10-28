@@ -85,6 +85,7 @@ class TestEmbeddingStrategy:
             'enrichment': {
                 'summary': 'Test summary',
                 'keywords': ['test', 'keyword'],
+                'hypothetical_questions': ['What is this?', 'How does it work?'],
                 'table_summary': 'Table summary'
             }
         }
@@ -94,6 +95,7 @@ class TestEmbeddingStrategy:
             "Content: This is test content.",
             "Summary: Test summary",
             "Keywords: test, keyword",
+            "Questions: What is this?; How does it work?",
             "Table: Table summary"
         ]
         
@@ -112,15 +114,72 @@ class TestEmbeddingStrategy:
         chunk_data = {
             'content': 'This is test content.',
             'logic_extraction': {
-                'claims': [{'text': 'Test claim 1'}, {'text': 'Test claim 2'}],
-                'relations': [{'description': 'Test relation'}]
+                'claims': [
+                    {
+                        'id': 'claim_1',
+                        'statement': 'Test claim 1',
+                        'type': 'factual',
+                        'confidence': 0.9,
+                        'derived_from': None
+                    },
+                    {
+                        'id': 'claim_2',
+                        'statement': 'Test claim 2',
+                        'type': 'inferential',
+                        'confidence': 0.8,
+                        'derived_from': ['claim_1']
+                    }
+                ],
+                'logical_relations': [
+                    {
+                        'premise': 'claim_1',
+                        'conclusion': 'claim_2',
+                        'relation_type': 'causal',
+                        'certainty': 0.85
+                    }
+                ],
+                'assumptions': ['Test assumption 1', 'Test assumption 2'],
+                'constraints': ['Test constraint 1'],
+                'open_questions': ['Test question 1', 'Test question 2']
             }
         }
         
         result = strategy.create_embedding_text(chunk_data)
         assert "Content: This is test content." in result
-        assert "Claims: Test claim 1, Test claim 2" in result
-        assert "Relations: Test relation" in result
+        assert "Claims: Test claim 1 (factual, 0.90); Test claim 2 (inferential, 0.80)" in result
+        assert "Relations: claim_1 -> claim_2 (causal, 0.85)" in result
+        assert "Assumptions: Test assumption 1; Test assumption 2" in result
+        assert "Constraints: Test constraint 1" in result
+        assert "Open Questions: Test question 1; Test question 2" in result
+    
+    def test_create_embedding_text_backward_compatibility(self):
+        """Test backward compatibility with old data formats."""
+        strategy = EmbeddingStrategy({
+            'include_base_content': True,
+            'include_enrichments': True,
+            'include_logic_extractions': True,
+            'combination_strategy': 'structured'
+        })
+        
+        # Test with old format (string claims)
+        chunk_data_old = {
+            'content': 'Test content',
+            'enrichment': {
+                'summary': 'Test summary',
+                'keywords': ['test']
+            },
+            'logic_extraction': {
+                'claims': ['Old format claim 1', 'Old format claim 2'],
+                'relations': ['Old format relation']
+            }
+        }
+        
+        result_old = strategy.create_embedding_text(chunk_data_old)
+        assert "Content: Test content" in result_old
+        assert "Summary: Test summary" in result_old
+        assert "Keywords: test" in result_old
+        assert "Claims: Old format claim 1; Old format claim 2" in result_old
+        assert "Relations: Old format relation" in result_old
     
     def test_create_embedding_text_concatenate_strategy(self):
         """Test creating embedding text with concatenate strategy."""

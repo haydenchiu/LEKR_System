@@ -332,24 +332,29 @@ result = indexer.reindex_collection('data/processed')
 
 ### Embedding Text Examples
 
-Different strategies create different embedding texts:
+Different strategies create different embedding texts using the actual Pydantic schemas:
 
 **Content Only:**
 ```
 "Machine learning is a subset of artificial intelligence."
 ```
 
-**Structured Enriched:**
+**Structured Enriched (ChunkEnrichment + LogicExtractionSchemaLiteChunk):**
 ```
 "Content: Machine learning is a subset of artificial intelligence.
 Summary: Introduction to machine learning concepts.
 Keywords: machine learning, artificial intelligence, AI, subset
-Claims: Machine learning is a subset of AI, ML enables computers to learn"
+Questions: What is machine learning?; How does ML relate to AI?
+Claims: Machine learning is a subset of AI (factual, 0.95); ML enables computers to learn (factual, 0.90)
+Relations: claim_1 -> claim_2 (causal, 0.85)
+Assumptions: Computers can learn from data; Learning from data is valuable
+Constraints: Requires data to learn from; Limited by quality of data
+Open Questions: What are the limitations of ML?; How does ML scale with data size?"
 ```
 
 **Concatenated Enriched:**
 ```
-"Machine learning is a subset of artificial intelligence. Introduction to machine learning concepts. machine learning, artificial intelligence, AI, subset Machine learning is a subset of AI, ML enables computers to learn"
+"Machine learning is a subset of artificial intelligence. Introduction to machine learning concepts. machine learning, artificial intelligence, AI, subset What is machine learning?; How does ML relate to AI? Machine learning is a subset of AI (factual, 0.95); ML enables computers to learn (factual, 0.90) claim_1 -> claim_2 (causal, 0.85) Computers can learn from data; Learning from data is valuable Requires data to learn from; Limited by quality of data What are the limitations of ML?; How does ML scale with data size?"
 ```
 
 ### Integration with Worker Service

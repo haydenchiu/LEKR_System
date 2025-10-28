@@ -101,7 +101,7 @@ class EmbeddingStrategy:
             else:
                 embedding_parts.append(content_text)
         
-        # Enrichment data
+        # Enrichment data - using ChunkEnrichment schema
         if self.include_enrichments and chunk_data.get('enrichment'):
             enrichment = chunk_data['enrichment']
             
@@ -119,6 +119,13 @@ class EmbeddingStrategy:
                 else:
                     embedding_parts.append(keywords_text)
             
+            if enrichment.get('hypothetical_questions'):
+                questions_text = '; '.join(enrichment['hypothetical_questions'])
+                if self.combination_strategy == 'structured':
+                    embedding_parts.append(f"Questions: {questions_text}")
+                else:
+                    embedding_parts.append(questions_text)
+            
             if enrichment.get('table_summary'):
                 table_text = enrichment['table_summary']
                 if self.combination_strategy == 'structured':
@@ -126,23 +133,74 @@ class EmbeddingStrategy:
                 else:
                     embedding_parts.append(table_text)
         
-        # Logic extraction data
+        # Logic extraction data - using LogicExtractionSchemaLiteChunk schema
         if self.include_logic_extractions and chunk_data.get('logic_extraction'):
             logic = chunk_data['logic_extraction']
             
+            # Extract claims with their types and confidence
             if logic.get('claims'):
-                claims_text = ', '.join([claim.get('text', '') for claim in logic['claims'] if claim.get('text')])
-                if claims_text and self.combination_strategy == 'structured':
-                    embedding_parts.append(f"Claims: {claims_text}")
-                elif claims_text:
-                    embedding_parts.append(claims_text)
+                claims_texts = []
+                for claim in logic['claims']:
+                    if isinstance(claim, dict):
+                        claim_text = claim.get('statement', claim.get('text', ''))
+                        claim_type = claim.get('type', 'factual')
+                        confidence = claim.get('confidence', 0.5)
+                        claims_texts.append(f"{claim_text} ({claim_type}, {confidence:.2f})")
+                    else:
+                        # Handle string format for backward compatibility
+                        claims_texts.append(str(claim))
+                
+                if claims_texts:
+                    claims_text = '; '.join(claims_texts)
+                    if self.combination_strategy == 'structured':
+                        embedding_parts.append(f"Claims: {claims_text}")
+                    else:
+                        embedding_parts.append(claims_text)
             
-            if logic.get('relations'):
-                relations_text = ', '.join([rel.get('description', '') for rel in logic['relations'] if rel.get('description')])
-                if relations_text and self.combination_strategy == 'structured':
-                    embedding_parts.append(f"Relations: {relations_text}")
-                elif relations_text:
-                    embedding_parts.append(relations_text)
+            # Extract logical relations
+            if logic.get('logical_relations'):
+                relations_texts = []
+                for relation in logic['logical_relations']:
+                    if isinstance(relation, dict):
+                        premise = relation.get('premise', '')
+                        conclusion = relation.get('conclusion', '')
+                        rel_type = relation.get('relation_type', 'inferential')
+                        certainty = relation.get('certainty', 0.5)
+                        relations_texts.append(f"{premise} -> {conclusion} ({rel_type}, {certainty:.2f})")
+                    else:
+                        # Handle string format for backward compatibility
+                        relations_texts.append(str(relation))
+                
+                if relations_texts:
+                    relations_text = '; '.join(relations_texts)
+                    if self.combination_strategy == 'structured':
+                        embedding_parts.append(f"Relations: {relations_text}")
+                    else:
+                        embedding_parts.append(relations_text)
+            
+            # Extract assumptions
+            if logic.get('assumptions'):
+                assumptions_text = '; '.join(logic['assumptions'])
+                if self.combination_strategy == 'structured':
+                    embedding_parts.append(f"Assumptions: {assumptions_text}")
+                else:
+                    embedding_parts.append(assumptions_text)
+            
+            # Extract constraints
+            if logic.get('constraints'):
+                constraints_text = '; '.join(logic['constraints'])
+                if self.combination_strategy == 'structured':
+                    embedding_parts.append(f"Constraints: {constraints_text}")
+                else:
+                    embedding_parts.append(constraints_text)
+            
+            # Extract open questions
+            if logic.get('open_questions'):
+                questions_text = '; '.join(logic['open_questions'])
+                if self.combination_strategy == 'structured':
+                    embedding_parts.append(f"Open Questions: {questions_text}")
+                else:
+                    embedding_parts.append(questions_text)
         
         # Combine all parts
         full_text = "\n".join(embedding_parts)

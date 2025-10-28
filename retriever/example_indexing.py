@@ -61,21 +61,26 @@ def create_sample_processed_document():
                 'logic_extraction': {
                     'claims': [
                         {
-                            'text': 'Machine learning is a subset of artificial intelligence',
+                            'id': 'claim_1',
+                            'statement': 'Machine learning is a subset of artificial intelligence',
+                            'type': 'factual',
                             'confidence': 0.95,
-                            'type': 'definition'
+                            'derived_from': None
                         },
                         {
-                            'text': 'Machine learning enables computers to learn from data',
+                            'id': 'claim_2',
+                            'statement': 'Machine learning enables computers to learn from data',
+                            'type': 'factual',
                             'confidence': 0.90,
-                            'type': 'capability'
+                            'derived_from': ['claim_1']
                         }
                     ],
-                    'relations': [
+                    'logical_relations': [
                         {
-                            'description': 'Machine learning is a subset of artificial intelligence',
-                            'confidence': 0.95,
-                            'type': 'hierarchical'
+                            'premise': 'claim_1',
+                            'conclusion': 'claim_2',
+                            'relation_type': 'causal',
+                            'certainty': 0.85
                         }
                     ],
                     'assumptions': [
@@ -116,26 +121,39 @@ def create_sample_processed_document():
                 'logic_extraction': {
                     'claims': [
                         {
-                            'text': 'There are three main types of machine learning',
+                            'id': 'claim_3',
+                            'statement': 'There are three main types of machine learning',
+                            'type': 'factual',
                             'confidence': 0.98,
-                            'type': 'classification'
+                            'derived_from': None
                         },
                         {
-                            'text': 'Supervised learning is a type of machine learning',
+                            'id': 'claim_4',
+                            'statement': 'Supervised learning is a type of machine learning',
+                            'type': 'factual',
                             'confidence': 0.95,
-                            'type': 'categorization'
+                            'derived_from': ['claim_3']
+                        },
+                        {
+                            'id': 'claim_5',
+                            'statement': 'Unsupervised learning is a type of machine learning',
+                            'type': 'factual',
+                            'confidence': 0.95,
+                            'derived_from': ['claim_3']
                         }
                     ],
-                    'relations': [
+                    'logical_relations': [
                         {
-                            'description': 'Supervised learning is a type of machine learning',
-                            'confidence': 0.95,
-                            'type': 'categorical'
+                            'premise': 'claim_3',
+                            'conclusion': 'claim_4',
+                            'relation_type': 'supportive',
+                            'certainty': 0.95
                         },
                         {
-                            'description': 'Unsupervised learning is a type of machine learning',
-                            'confidence': 0.95,
-                            'type': 'categorical'
+                            'premise': 'claim_3',
+                            'conclusion': 'claim_5',
+                            'relation_type': 'supportive',
+                            'certainty': 0.95
                         }
                     ],
                     'assumptions': [
@@ -178,10 +196,31 @@ def demonstrate_embedding_strategies():
         'content': 'Machine learning is a subset of artificial intelligence.',
         'enrichment': {
             'summary': 'Introduction to machine learning',
-            'keywords': ['machine learning', 'AI', 'artificial intelligence']
+            'keywords': ['machine learning', 'AI', 'artificial intelligence'],
+            'hypothetical_questions': ['What is machine learning?', 'How does ML relate to AI?'],
+            'table_summary': None
         },
         'logic_extraction': {
-            'claims': [{'text': 'Machine learning is a subset of AI', 'confidence': 0.95}]
+            'claims': [
+                {
+                    'id': 'claim_1',
+                    'statement': 'Machine learning is a subset of AI',
+                    'type': 'factual',
+                    'confidence': 0.95,
+                    'derived_from': None
+                }
+            ],
+            'logical_relations': [
+                {
+                    'premise': 'claim_1',
+                    'conclusion': 'claim_2',
+                    'relation_type': 'causal',
+                    'certainty': 0.85
+                }
+            ],
+            'assumptions': ['AI can be subdivided into categories'],
+            'constraints': ['Limited to subset relationship'],
+            'open_questions': ['What other AI subsets exist?']
         }
     }
     
